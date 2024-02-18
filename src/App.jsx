@@ -15,10 +15,11 @@ export class App extends Component {
     isActive: false,
     page: 1,
     allObjects: 1,
+    currentItem: "",
   };
   handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("start");
+
     this.setState({
       loading: true,
       data: null,
@@ -46,44 +47,77 @@ export class App extends Component {
 
   buttonClick = async () => {
     this.setState((prev) => {
-      return { page: prev.page + 1 };
+      return { page: prev.page + 1, loading: true };
     });
     console.log(this.state.page);
     const data = await getAPI(this.state.search, this.state.page + 1);
     await this.setState((prev) => {
-      console.log("ne data");
       console.log(prev.data);
       console.log(this.state.page);
-      return { data: [...prev.data, ...data.hits] };
+      return { data: [...prev.data, ...data.hits], loading: false };
+    });
+  };
+
+  itemClick = (e) => {
+    let item = e.target.getAttribute("src");
+    let currentItem = this.state.data.find((el) => el.webformatURL === item);
+    this.setState({
+      currentItem,
+      isActive: true,
+    });
+    console.log("click item", item);
+    console.log(currentItem.largeImageURL);
+  };
+
+  modalClose = (e) => {
+    console.log(e);
+    if (e.target.getAttribute("class") === "overlay") {
+      this.setState({
+        isActive: false,
+      });
+    }
+  };
+
+  modalCloseESC = () => {
+    this.setState({
+      isActive: false,
     });
   };
 
   render() {
     return (
-      <>
+      <div className="container">
         <form onSubmit={this.handleSubmit}>
           <input type="text" onChange={this.handleChange} />
         </form>
-        {this.state.isActive && <Modal />}
+        {this.state.isActive && (
+          <Modal
+            img={this.state.currentItem}
+            click={this.modalClose}
+            handleClickESC={this.modalCloseESC}
+          />
+        )}
         <ul>
-          {this.state.loading && (
-            <Audio
-              height="80"
-              width="80"
-              radius="9"
-              color="blue"
-              ariaLabel="loading"
-              wrapperStyle
-              wrapperClass
-            />
-          )}
           {/* {this.state.data && this.state.data.hits[0].previewURL} */}
-          {this.state.data && <Render data={this.state.data} />}
-          {this.state.data && this.state.allObjects > this.state.page && (
-            <Button click={this.buttonClick} />
+          {this.state.data && (
+            <Render data={this.state.data} click={this.itemClick} />
           )}
         </ul>
-      </>
+        {this.state.data && this.state.allObjects > this.state.page && (
+          <Button click={this.buttonClick} />
+        )}
+        {this.state.loading && (
+          <Audio
+            height="80"
+            width="80"
+            radius="9"
+            color="blue"
+            ariaLabel="loading"
+            wrapperStyle
+            wrapperClass
+          />
+        )}
+      </div>
     );
   }
 }
