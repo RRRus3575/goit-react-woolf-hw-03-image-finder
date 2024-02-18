@@ -28,8 +28,7 @@ export class App extends Component {
     });
     const data = await getAPI(this.state.search, this.state.page);
     const allObjects = await Math.ceil(data.totalHits / 12);
-    console.log(allObjects > this.state.page);
-    console.log(data);
+
     this.setState({
       data: data.hits,
       allObjects: allObjects,
@@ -39,7 +38,7 @@ export class App extends Component {
 
   handleChange = (e) => {
     e.preventDefault();
-    console.log(e.target.value);
+
     this.setState({
       search: e.target.value,
     });
@@ -49,11 +48,9 @@ export class App extends Component {
     this.setState((prev) => {
       return { page: prev.page + 1, loading: true };
     });
-    console.log(this.state.page);
+
     const data = await getAPI(this.state.search, this.state.page + 1);
     await this.setState((prev) => {
-      console.log(prev.data);
-      console.log(this.state.page);
       return { data: [...prev.data, ...data.hits], loading: false };
     });
   };
@@ -65,12 +62,9 @@ export class App extends Component {
       currentItem,
       isActive: true,
     });
-    console.log("click item", item);
-    console.log(currentItem.largeImageURL);
   };
 
   modalClose = (e) => {
-    console.log(e);
     if (e.target.getAttribute("class") === "overlay") {
       this.setState({
         isActive: false,

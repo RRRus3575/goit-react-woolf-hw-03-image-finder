@@ -3,7 +3,6 @@ import React, { Component } from "react";
 class Modal extends Component {
   handleClickESC = (e) => {
     if (e.code === "Escape") {
-      console.log("Escape!!");
       this.props.handleClickESC();
     }
   };
