@@ -25,6 +25,9 @@ input {
   height: 40px;
   font-size: 21px;
 }
+.notification {
+  font-size: 22px;
+}
 ul {
   list-style: none;
   padding: 0 20px;

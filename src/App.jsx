@@ -17,25 +17,30 @@ export class App extends Component {
     page: 1,
     allObjects: 1,
     currentItem: "",
+    isResult: false,
   };
 
   async componentDidUpdate(_, prevState) {
     if (prevState.search !== this.state.search) {
       try {
-        console.log("start API");
         this.setState({
           loading: true,
         });
 
         const data = await getAPI(this.state.search, this.state.page);
         const allObjects = await Math.ceil(data.totalHits / 12);
-
+        if (data.total < 1) {
+          return this.setState({
+            isResult: true,
+          });
+        }
         this.setState({
           data: data.hits,
+          isResult: false,
           allObjects: allObjects,
         });
       } catch (error) {
-        console.log(error);
+        console.log("error");
       } finally {
         this.setState({
           loading: false,
@@ -43,15 +48,18 @@ export class App extends Component {
       }
     }
     if (prevState.page !== this.state.page) {
-      const data = await getAPI(this.state.search, this.state.page + 1);
-      await this.setState((prev) => {
-        return { data: [...prev.data, ...data.hits], loading: false };
-      });
+      try {
+        const data = await getAPI(this.state.search, this.state.page + 1);
+        await this.setState((prev) => {
+          return { data: [...prev.data, ...data.hits], loading: false };
+        });
+      } catch (error) {
+        console.log("error");
+      }
     }
   }
 
   submitForm = (text) => {
-    console.log("submit", text);
     this.setState({
       search: text,
       data: null,
@@ -90,6 +98,12 @@ export class App extends Component {
           <Modal img={this.state.currentItem} modalToggle={this.modalToggle} />
         )}
         <ul>
+          {this.state.isResult && (
+            <p className="notification">
+              Nothing was found for this query, please try entering a different
+              value😞
+            </p>
+          )}
           {this.state.data && (
             <Render data={this.state.data} click={this.itemClick} />
           )}
