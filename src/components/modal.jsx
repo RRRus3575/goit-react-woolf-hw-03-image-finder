@@ -3,7 +3,13 @@ import React, { Component } from "react";
 class Modal extends Component {
   handleClickESC = (e) => {
     if (e.code === "Escape") {
-      this.props.handleClickESC();
+      this.props.modalToggle();
+    }
+  };
+
+  modalClose = (e) => {
+    if (e.target.getAttribute("class") === "overlay") {
+      this.props.modalToggle();
     }
   };
 
@@ -17,7 +23,7 @@ class Modal extends Component {
 
   render() {
     return (
-      <div className="overlay" onClick={this.props.click}>
+      <div className="overlay" onClick={this.modalClose}>
         <div className="modal">
           <img src={this.props.img.largeImageURL} />
         </div>

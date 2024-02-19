@@ -6,6 +6,7 @@ import Button from "./components/Button";
 import getAPI from "./components/API";
 import Render from "./components/renderElements";
 import Modal from "./components/modal";
+import Form from "./components/Form";
 
 export class App extends Component {
   state = {
@@ -17,41 +18,51 @@ export class App extends Component {
     allObjects: 1,
     currentItem: "",
   };
-  handleSubmit = async (e) => {
-    e.preventDefault();
 
+  async componentDidUpdate(_, prevState) {
+    if (prevState.search !== this.state.search) {
+      try {
+        console.log("start API");
+        this.setState({
+          loading: true,
+        });
+
+        const data = await getAPI(this.state.search, this.state.page);
+        const allObjects = await Math.ceil(data.totalHits / 12);
+
+        this.setState({
+          data: data.hits,
+          allObjects: allObjects,
+        });
+      } catch (error) {
+        console.log(error);
+      } finally {
+        this.setState({
+          loading: false,
+        });
+      }
+    }
+    if (prevState.page !== this.state.page) {
+      const data = await getAPI(this.state.search, this.state.page + 1);
+      await this.setState((prev) => {
+        return { data: [...prev.data, ...data.hits], loading: false };
+      });
+    }
+  }
+
+  submitForm = (text) => {
+    console.log("submit", text);
     this.setState({
-      loading: true,
+      search: text,
       data: null,
       page: 1,
-      allPages: 1,
-    });
-    const data = await getAPI(this.state.search, this.state.page);
-    const allObjects = await Math.ceil(data.totalHits / 12);
-
-    this.setState({
-      data: data.hits,
-      allObjects: allObjects,
-      loading: false,
-    });
-  };
-
-  handleChange = (e) => {
-    e.preventDefault();
-
-    this.setState({
-      search: e.target.value,
+      allObjects: 1,
     });
   };
 
   buttonClick = async () => {
     this.setState((prev) => {
       return { page: prev.page + 1, loading: true };
-    });
-
-    const data = await getAPI(this.state.search, this.state.page + 1);
-    await this.setState((prev) => {
-      return { data: [...prev.data, ...data.hits], loading: false };
     });
   };
 
@@ -64,35 +75,21 @@ export class App extends Component {
     });
   };
 
-  modalClose = (e) => {
-    if (e.target.getAttribute("class") === "overlay") {
-      this.setState({
-        isActive: false,
-      });
-    }
-  };
-
-  modalCloseESC = () => {
-    this.setState({
-      isActive: false,
+  modalToggle = () => {
+    this.setState((prev) => {
+      return { isActive: !prev.isActive };
     });
   };
 
   render() {
     return (
       <div className="container">
-        <form onSubmit={this.handleSubmit}>
-          <input type="text" onChange={this.handleChange} />
-        </form>
+        <Form submitForm={this.submitForm} />
+
         {this.state.isActive && (
-          <Modal
-            img={this.state.currentItem}
-            click={this.modalClose}
-            handleClickESC={this.modalCloseESC}
-          />
+          <Modal img={this.state.currentItem} modalToggle={this.modalToggle} />
         )}
         <ul>
-          {/* {this.state.data && this.state.data.hits[0].previewURL} */}
           {this.state.data && (
             <Render data={this.state.data} click={this.itemClick} />
           )}
