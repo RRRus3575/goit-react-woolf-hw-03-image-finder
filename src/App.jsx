@@ -49,7 +49,7 @@ export class App extends Component {
     }
     if (prevState.page !== this.state.page) {
       try {
-        const data = await getAPI(this.state.search, this.state.page + 1);
+        const data = await getAPI(this.state.search, this.state.page);
         await this.setState((prev) => {
           return { data: [...prev.data, ...data.hits], loading: false };
         });
