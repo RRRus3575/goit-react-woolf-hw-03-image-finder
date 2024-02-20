@@ -1,12 +1,13 @@
 import { useState } from "react";
 import React, { Component } from "react";
-import { Audio } from "react-loader-spinner";
+
 import "./App.css";
 import Button from "./components/Button";
 import getAPI from "./components/API";
 import Render from "./components/renderElements";
 import Modal from "./components/modal";
 import Form from "./components/Form";
+import Loader from "./components/Loader";
 
 export class App extends Component {
   state = {
@@ -15,30 +16,40 @@ export class App extends Component {
     loading: false,
     isActive: false,
     page: 1,
-    allObjects: 1,
+    totalPages: 1,
     currentItem: "",
-    isResult: false,
+    isEmpty: false,
   };
 
   async componentDidUpdate(_, prevState) {
-    if (prevState.search !== this.state.search) {
+    if (
+      prevState.search !== this.state.search ||
+      prevState.page !== this.state.page
+    ) {
       try {
         this.setState({
           loading: true,
         });
 
         const data = await getAPI(this.state.search, this.state.page);
-        const allObjects = await Math.ceil(data.totalHits / 12);
+        const totalPages = await Math.ceil(data.totalHits / 12);
         if (data.total < 1) {
           return this.setState({
-            isResult: true,
+            isEmpty: true,
           });
         }
-        this.setState({
-          data: data.hits,
-          isResult: false,
-          allObjects: allObjects,
-        });
+        if (prevState.search === this.state.search) {
+          this.setState({
+            data: [...prevState.data, ...data.hits],
+            loading: false,
+          });
+        } else {
+          this.setState({
+            data: data.hits,
+            isEmpty: false,
+            totalPages: totalPages,
+          });
+        }
       } catch (error) {
         console.log("error");
       } finally {
@@ -47,16 +58,16 @@ export class App extends Component {
         });
       }
     }
-    if (prevState.page !== this.state.page) {
-      try {
-        const data = await getAPI(this.state.search, this.state.page);
-        await this.setState((prev) => {
-          return { data: [...prev.data, ...data.hits], loading: false };
-        });
-      } catch (error) {
-        console.log("error");
-      }
-    }
+    // if (prevState.page !== this.state.page) {
+    //   try {
+    //     const data = await getAPI(this.state.search, this.state.page);
+    //     await this.setState((prev) => {
+
+    //     });
+    //   } catch (error) {
+    //     console.log("error");
+    //   }
+    // }
   }
 
   submitForm = (text) => {
@@ -64,7 +75,7 @@ export class App extends Component {
       search: text,
       data: null,
       page: 1,
-      allObjects: 1,
+      totalPages: 1,
     });
   };
 
@@ -97,31 +108,21 @@ export class App extends Component {
         {this.state.isActive && (
           <Modal img={this.state.currentItem} modalToggle={this.modalToggle} />
         )}
-        <ul>
-          {this.state.isResult && (
-            <p className="notification">
-              Nothing was found for this query, please try entering a different
-              value😞
-            </p>
-          )}
-          {this.state.data && (
-            <Render data={this.state.data} click={this.itemClick} />
-          )}
-        </ul>
-        {this.state.data && this.state.allObjects > this.state.page && (
+
+        {this.state.isEmpty && (
+          <p className="notification">
+            Nothing was found for this query, please try entering a different
+            value😞
+          </p>
+        )}
+        {this.state.data && (
+          <Render data={this.state.data} click={this.itemClick} />
+        )}
+
+        {this.state.data && this.state.totalPages > this.state.page && (
           <Button click={this.buttonClick} />
         )}
-        {this.state.loading && (
-          <Audio
-            height="80"
-            width="80"
-            radius="9"
-            color="blue"
-            ariaLabel="loading"
-            wrapperStyle
-            wrapperClass
-          />
-        )}
+        {this.state.loading && <Loader />}
       </div>
     );
   }
