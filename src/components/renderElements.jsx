@@ -6,7 +6,7 @@ class Render extends Component {
       <ul>
         {this.props.data.map((el) => (
           <li key={el.id} onClick={this.props.click}>
-            <img src={el.webformatURL} alt={el.tags} />
+            <img src={el.webformatURL} srcSet={el.webformatURL} alt={el.tags} />
           </li>
         ))}
       </ul>

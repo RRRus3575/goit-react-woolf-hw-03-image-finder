@@ -1,4 +1,3 @@
-import { useState } from "react";
 import React, { Component } from "react";
 
 import "./App.css";
@@ -17,7 +16,7 @@ export class App extends Component {
     isActive: false,
     page: 1,
     totalPages: 1,
-    currentItem: "",
+    imgLarge: "",
     isEmpty: false,
   };
 
@@ -32,23 +31,22 @@ export class App extends Component {
         });
 
         const data = await getAPI(this.state.search, this.state.page);
-        const totalPages = await Math.ceil(data.totalHits / 12);
-        if (data.total < 1) {
-          return this.setState({
-            isEmpty: true,
-          });
-        }
+
         if (prevState.search === this.state.search) {
           this.setState({
             data: [...prevState.data, ...data.hits],
             loading: false,
           });
         } else {
-          this.setState({
-            data: data.hits,
-            isEmpty: false,
-            totalPages: totalPages,
-          });
+          data.hits.length < 1
+            ? this.setState({
+                isEmpty: true,
+              })
+            : this.setState({
+                data: data.hits,
+                isEmpty: false,
+                totalPages: Math.ceil(data.totalHits / 12),
+              });
         }
       } catch (error) {
         console.log("error");
@@ -58,16 +56,6 @@ export class App extends Component {
         });
       }
     }
-    // if (prevState.page !== this.state.page) {
-    //   try {
-    //     const data = await getAPI(this.state.search, this.state.page);
-    //     await this.setState((prev) => {
-
-    //     });
-    //   } catch (error) {
-    //     console.log("error");
-    //   }
-    // }
   }
 
   submitForm = (text) => {
@@ -86,10 +74,8 @@ export class App extends Component {
   };
 
   itemClick = (e) => {
-    let item = e.target.getAttribute("src");
-    let currentItem = this.state.data.find((el) => el.webformatURL === item);
     this.setState({
-      currentItem,
+      imgLarge: e.target.getAttribute("srcSet"),
       isActive: true,
     });
   };
@@ -106,7 +92,7 @@ export class App extends Component {
         <Form submitForm={this.submitForm} />
 
         {this.state.isActive && (
-          <Modal img={this.state.currentItem} modalToggle={this.modalToggle} />
+          <Modal img={this.state.imgLarge} modalToggle={this.modalToggle} />
         )}
 
         {this.state.isEmpty && (
@@ -118,11 +104,10 @@ export class App extends Component {
         {this.state.data && (
           <Render data={this.state.data} click={this.itemClick} />
         )}
-
+        {this.state.loading && <Loader />}
         {this.state.data && this.state.totalPages > this.state.page && (
           <Button click={this.buttonClick} />
         )}
-        {this.state.loading && <Loader />}
       </div>
     );
   }
