@@ -41,6 +41,7 @@ export class App extends Component {
         this.setState((prevState) => ({
           data: [...prevState.data, ...data.hits],
           totalPages: Math.ceil(data.totalHits / 12),
+          isEmpty: false,
         }));
       } catch (error) {
         console.log("error");
