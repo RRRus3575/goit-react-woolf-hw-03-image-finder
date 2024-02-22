@@ -10,7 +10,7 @@ import Loader from "./components/Loader";
 
 export class App extends Component {
   state = {
-    data: null,
+    data: [],
     search: "",
     loading: false,
     isActive: false,
@@ -32,22 +32,16 @@ export class App extends Component {
 
         const data = await getAPI(this.state.search, this.state.page);
 
-        if (prevState.search === this.state.search) {
-          this.setState({
-            data: [...prevState.data, ...data.hits],
-            loading: false,
+        if (data.hits.length < 1) {
+          return this.setState({
+            isEmpty: true,
           });
-        } else {
-          data.hits.length < 1
-            ? this.setState({
-                isEmpty: true,
-              })
-            : this.setState({
-                data: data.hits,
-                isEmpty: false,
-                totalPages: Math.ceil(data.totalHits / 12),
-              });
         }
+
+        this.setState((prevState) => ({
+          data: [...prevState.data, ...data.hits],
+          totalPages: Math.ceil(data.totalHits / 12),
+        }));
       } catch (error) {
         console.log("error");
       } finally {
@@ -61,15 +55,15 @@ export class App extends Component {
   submitForm = (text) => {
     this.setState({
       search: text,
-      data: null,
+      data: [],
       page: 1,
       totalPages: 1,
     });
   };
 
-  buttonClick = async () => {
+  buttonClick = () => {
     this.setState((prev) => {
-      return { page: prev.page + 1, loading: true };
+      return { page: prev.page + 1 };
     });
   };
 
